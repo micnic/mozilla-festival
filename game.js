@@ -23,15 +23,6 @@ function init() {
 	// Set up Socket.IO to listen on port 8000
 	socket = io.listen(8000);
 
-	// Configure Socket.IO
-	socket.configure(function() {
-		// Only use WebSockets
-		socket.set("transports", ["websocket"]);
-
-		// Restrict log output
-		socket.set("log level", 2);
-	});
-
 	// Start listening for events
 	setEventHandlers();
 };
@@ -81,19 +72,19 @@ function onClientDisconnect() {
 // New player has joined
 function onNewPlayer(data) {
 	// Create a new player
-	var newPlayer = new Player(data.x, data.y);
+	var newPlayer = new Player(data.x, data.y, data.color);
 	newPlayer.id = this.id;
 
 	// Broadcast new player to connected socket clients
-	this.broadcast.emit("new player", {id: newPlayer.id, x: newPlayer.getX(), y: newPlayer.getY()});
+	this.broadcast.emit("new player", {id: newPlayer.id, color: newPlayer.color, x: newPlayer.getX(), y: newPlayer.getY()});
 
 	// Send existing players to the new player
 	var i, existingPlayer;
 	for (i = 0; i < players.length; i++) {
 		existingPlayer = players[i];
-		this.emit("new player", {id: existingPlayer.id, x: existingPlayer.getX(), y: existingPlayer.getY()});
+		this.emit("new player", {id: existingPlayer.id, color: existingPlayer.color, x: existingPlayer.getX(), y: existingPlayer.getY()});
 	};
-		
+
 	// Add new player to the players array
 	players.push(newPlayer);
 };
@@ -114,7 +105,7 @@ function onMovePlayer(data) {
 	movePlayer.setY(data.y);
 
 	// Broadcast updated position to connected socket clients
-	this.broadcast.emit("move player", {id: movePlayer.id, x: movePlayer.getX(), y: movePlayer.getY()});
+	this.broadcast.emit("move player", {id: movePlayer.id, color: movePlayer.color, x: movePlayer.getX(), y: movePlayer.getY()});
 };
 
 
@@ -128,7 +119,7 @@ function playerById(id) {
 		if (players[i].id == id)
 			return players[i];
 	};
-	
+
 	return false;
 };
 

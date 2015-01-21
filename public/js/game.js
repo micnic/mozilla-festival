@@ -30,11 +30,15 @@ function init() {
 	var startX = Math.round(Math.random()*(canvas.width-5)),
 		startY = Math.round(Math.random()*(canvas.height-5));
 
+	var color = '#' + Array.apply(Array, Array(3)).map(function () {
+		return ('0' + Math.round(Math.random() * 255).toString(16)).substr(-2);
+	}).join('');
+
 	// Initialise the local player
-	localPlayer = new Player(startX, startY);
+	localPlayer = new Player(startX, startY, color);
 
 	// Initialise socket connection
-	socket = io.connect("http://localhost", {port: 8000, transports: ["websocket"]});
+	socket = io.connect("http://192.168.1.127", {port: 8000, transports: ["websocket"]});
 
 	// Initialise remote players array
 	remotePlayers = [];
@@ -97,7 +101,7 @@ function onSocketConnected() {
 	console.log("Connected to socket server");
 
 	// Send local player data to the game server
-	socket.emit("new player", {x: localPlayer.getX(), y: localPlayer.getY()});
+	socket.emit("new player", {color: localPlayer.color, x: localPlayer.getX(), y: localPlayer.getY()});
 };
 
 // Socket disconnected
@@ -110,7 +114,7 @@ function onNewPlayer(data) {
 	console.log("New player connected: "+data.id);
 
 	// Initialise the new player
-	var newPlayer = new Player(data.x, data.y);
+	var newPlayer = new Player(data.x, data.y, data.color);
 	newPlayer.id = data.id;
 
 	// Add new player to the remote players array
@@ -166,7 +170,7 @@ function update() {
 	// Update local player and check for change
 	if (localPlayer.update(keys)) {
 		// Send local player data to the game server
-		socket.emit("move player", {x: localPlayer.getX(), y: localPlayer.getY()});
+		socket.emit("move player", {color: localPlayer.color, x: localPlayer.getX(), y: localPlayer.getY()});
 	};
 };
 
@@ -199,6 +203,6 @@ function playerById(id) {
 		if (remotePlayers[i].id == id)
 			return remotePlayers[i];
 	};
-	
+
 	return false;
 };

@@ -1,7 +1,7 @@
 /**************************************************
 ** GAME PLAYER CLASS
 **************************************************/
-var Player = function(startX, startY) {
+var Player = function(startX, startY, color) {
 	var x = startX,
 		y = startY,
 		id;
@@ -25,6 +25,7 @@ var Player = function(startX, startY) {
 
 	// Define which variables and methods can be accessed
 	return {
+		color: color,
 		getX: getX,
 		getY: getY,
 		setX: setX,
