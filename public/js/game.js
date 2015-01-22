@@ -14,8 +14,8 @@ var canvas,			// Canvas DOM element
 **************************************************/
 function init() {
 	// Declare the canvas and rendering context
-	canvas = document.getElementById("gameCanvas");
-	ctx = canvas.getContext("2d");
+	canvas = document.getElementById('gameCanvas');
+	ctx = canvas.getContext('2d');
 
 	// Maximise the canvas
 	canvas.width = window.innerWidth;
@@ -38,7 +38,9 @@ function init() {
 	localPlayer = new Player(startX, startY, color);
 
 	// Initialise socket connection
-	socket = io.connect("http://192.168.1.127", {port: 8000, transports: ["websocket"]});
+	socket = simples.ws('/game', {
+		mode: 'object'
+	});
 
 	// Initialise remote players array
 	remotePlayers = [];
@@ -53,26 +55,26 @@ function init() {
 **************************************************/
 var setEventHandlers = function() {
 	// Keyboard
-	window.addEventListener("keydown", onKeydown, false);
-	window.addEventListener("keyup", onKeyup, false);
+	window.addEventListener('keydown', onKeydown, false);
+	window.addEventListener('keyup', onKeyup, false);
 
 	// Window resize
-	window.addEventListener("resize", onResize, false);
+	window.addEventListener('resize', onResize, false);
 
 	// Socket connection successful
-	socket.on("connect", onSocketConnected);
+	socket.on('open', onSocketConnected);
 
 	// Socket disconnection
-	socket.on("disconnect", onSocketDisconnect);
+	socket.on('close', onSocketDisconnect);
 
 	// New player message received
-	socket.on("new player", onNewPlayer);
+	socket.on('new player', onNewPlayer);
 
 	// Player move message received
-	socket.on("move player", onMovePlayer);
+	socket.on('move player', onMovePlayer);
 
 	// Player removed message received
-	socket.on("remove player", onRemovePlayer);
+	socket.on('remove player', onRemovePlayer);
 };
 
 // Keyboard key down
@@ -98,20 +100,24 @@ function onResize(e) {
 
 // Socket connected
 function onSocketConnected() {
-	console.log("Connected to socket server");
+	console.log('Connected to socket server');
 
 	// Send local player data to the game server
-	socket.emit("new player", {color: localPlayer.color, x: localPlayer.getX(), y: localPlayer.getY()});
+	socket.send('new player', {
+		color: localPlayer.color,
+		x: localPlayer.getX(),
+		y: localPlayer.getY()
+	});
 };
 
 // Socket disconnected
 function onSocketDisconnect() {
-	console.log("Disconnected from socket server");
+	console.log('Disconnected from socket server');
 };
 
 // New player
 function onNewPlayer(data) {
-	console.log("New player connected: "+data.id);
+	console.log('New player connected: '+data.id);
 
 	// Initialise the new player
 	var newPlayer = new Player(data.x, data.y, data.color);
@@ -127,7 +133,7 @@ function onMovePlayer(data) {
 
 	// Player not found
 	if (!movePlayer) {
-		console.log("Player not found: "+data.id);
+		console.log('Player not found: ' + data.id);
 		return;
 	};
 
@@ -142,7 +148,7 @@ function onRemovePlayer(data) {
 
 	// Player not found
 	if (!removePlayer) {
-		console.log("Player not found: "+data.id);
+		console.log('Player not found: ' + data.id);
 		return;
 	};
 
@@ -170,7 +176,11 @@ function update() {
 	// Update local player and check for change
 	if (localPlayer.update(keys)) {
 		// Send local player data to the game server
-		socket.emit("move player", {color: localPlayer.color, x: localPlayer.getX(), y: localPlayer.getY()});
+		socket.send('move player', {
+			color: localPlayer.color,
+			x: localPlayer.getX(),
+			y: localPlayer.getY()
+		});
 	};
 };
 
@@ -180,7 +190,7 @@ function update() {
 **************************************************/
 function draw() {
 	// Wipe the canvas clean
-	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	//ctx.clearRect(0, 0, canvas.width, canvas.height);
 
 	// Draw the local player
 	localPlayer.draw(ctx);
